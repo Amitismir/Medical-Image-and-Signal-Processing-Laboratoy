@@ -34,33 +34,73 @@ EEG_1_ICA_Applied = W * EEG_1;
 EEG_2_ICA_Applied = W2 * EEG_2;
 
 
-%% part4 EEG1
-%plotting in time domain after ICA
+%% Part 4 - EEG1 Analysis (21 ICA Components)
+% Time domain plot of ICA components
+ICA_CompNames = cell(21, 1);
+for i = 1:21
+    ICA_CompNames{i} = sprintf('IC%d', i);
+end
+
 figure;
-DISP_EEG(EEG_1_ICA_Applied,offset1,fs,ElecNames);
-title("EEG1 signal in Time zone after ICA")
+DISP_EEG(EEG_1_ICA_Applied(1:21, :), offset1, fs, ICA_CompNames);
+title('EEG1 ICA Components (Time Domain)');
+xlim([0 5]);
 
-
-%plotting in frequency domain after ICA
-for i=1:length(ElecNames)
-[pxx, f]=pwelch(EEG_1_ICA_Applied(i,:),[],[],[],fs);
-subplot(3,7,i);
-plot(f,pxx);
-  title(sprintf('EEG1 Component No. %d', i));
+% Frequency domain analysis
+figure('Position', [100, 100, 1400, 800]);
+for i = 1:21
+    [pxx, f] = pwelch(EEG_1_ICA_Applied(i, :), [], [], [], fs);
+    subplot(3, 7, i);
+    plot(f, 10*log10(pxx));
+    title(sprintf('IC%d', i));
     xlabel('Frequency (Hz)');
     xlim([0 80]);
     ylabel('Power (dB/Hz)');
     grid on;
-end 
-%SPETIAL
-ElectrodeNames = ElectrodeInfo.Electrodes.labels;
+end
+sgtitle('EEG1 ICA Components - Frequency Domain');
+
+% Spatial topography (mixing matrix columns)
 ElectrodeXs = ElectrodeInfo.Electrodes.X;
 ElectrodeYs = ElectrodeInfo.Electrodes.Y;
-figure;
+figure('Position', [100, 100, 1200, 1000]);
 for idx = 1:21
-    subplot(7,3,idx);
-    plottopomap(ElectrodeXs,ElectrodeYs,ElectrodeNames,W(:,idx));
+    subplot(7, 3, idx);
+    plottopomap(ElectrodeXs, ElectrodeYs, ElecNames, W(:, idx));
+    title(sprintf('IC%d Topography', idx));
 end
+sgtitle('EEG1 ICA Components - Spatial Distribution');
+
+%% Part 4 - EEG2 Analysis (21 ICA Components)
+% Time domain plot of ICA components
+figure;
+DISP_EEG(EEG_2_ICA_Applied(1:21, :), offset2, fs, ICA_CompNames);
+title('EEG2 ICA Components (Time Domain)');
+xlim([0 5]);
+
+% Frequency domain analysis
+figure('Position', [100, 100, 1400, 800]);
+for i = 1:21
+    [pxx, f] = pwelch(EEG_2_ICA_Applied(i, :), [], [], [], fs);
+    subplot(3, 7, i);
+    plot(f, 10*log10(pxx));
+    title(sprintf('IC%d', i));
+    xlabel('Frequency (Hz)');
+    xlim([0 80]);
+    ylabel('Power (dB/Hz)');
+    grid on;
+end
+sgtitle('EEG2 ICA Components - Frequency Domain');
+
+% Spatial topography (mixing matrix columns)
+figure('Position', [100, 100, 1200, 1000]);
+for idx = 1:21
+    subplot(7, 3, idx);
+    plottopomap(ElectrodeXs, ElectrodeYs, ElecNames, W2(:, idx));
+    title(sprintf('IC%d Topography', idx));
+end
+sgtitle('EEG2 ICA Components - Spatial Distribution');
+
 
 
 %% PART4 EEG2
@@ -111,7 +151,7 @@ title('EEG Signals (Cleaned with ICA) from All Channels');
 set(gcf, 'Position', [0, 0, 800, 600]);
 %%
 
-function DISP_EEG(Z, offset, feq, ElecName)
+function disp_eeg(Z, offset, feq, ElecName)
      [num_channels, num_samples] = size(Z);
       time = (0:num_samples-1) / feq;
     
